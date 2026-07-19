@@ -1,0 +1,12 @@
+Hermes Rescue Bot uses or interoperates with:
+
+- Hermes Agent — MIT License.
+- CLIProxyAPI — MIT License.
+- PyYAML — MIT License.
+- httpx — BSD 3-Clause License.
+- python-telegram-bot — GNU LGPL version 3.
+- Bubblewrap — GNU Library GPL version 2 or later; external executable.
+- Google Antigravity CLI — external, not redistributed; subject to Google's terms.
+
+This project is independent and is not affiliated with or endorsed by Google,
+Telegram, OpenAI, or the maintainers of the listed external tools.
