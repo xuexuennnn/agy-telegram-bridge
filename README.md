@@ -1,8 +1,14 @@
-# Hermes Rescue Bot
+# Antigravity Hermes Telegram Rescue Bot
 
-Hermes Rescue Bot 是一个面向单一管理员的 Telegram 私聊救援控制面：在主 Agent 不可用时检查用户级服务、运行受限 AGY 任务、导入 CPA 凭证，并可选地只读分析或经二次确认维修一个明确配置的本地项目。
+> **中文**：面向单一管理员的 Telegram 私聊救援控制面，在 Hermes Agent 不可用时提供状态检查、受限 Antigravity（AGY）任务、CPA 凭证导入，以及经过明确确认的本地项目诊断与维修。
+>
+> **English**: A single-operator Telegram rescue control plane for Hermes Agent, with sandboxed Antigravity (AGY) tasks, safe CPA credential imports, service recovery, and explicitly confirmed local-project diagnostics and repair.
 
-English summary: a single-operator Telegram rescue bot with strict allowlisting, mandatory Bubblewrap isolation, bounded/redacted output, safe credential transactions, and an optional fail-closed managed-project adapter.
+项目坚持默认拒绝：私聊和数字用户 ID 双重校验、强制 Bubblewrap 隔离、有界且脱敏的输出、原子凭证事务、一次性危险操作确认，以及默认关闭的通用项目维修能力。它不是多租户 Bot，也不是通用远程 Shell。
+
+The project is fail-closed by default: private-chat and numeric-user allowlisting, mandatory Bubblewrap isolation, bounded and redacted output, atomic credential transactions, one-time confirmation for risky actions, and an optional managed-project repair feature that remains disabled unless explicitly configured. It is neither a multi-tenant bot nor a general-purpose remote shell.
+
+## 中文说明
 
 ## 架构与威胁模型
 
@@ -27,6 +33,37 @@ Telegram 更新先通过“私聊 + 数字用户 ID”双重校验。命令在�
 每次回复最多发送 10 个文件，每个文件最多 45 MiB。支持：`.doc`、`.docx`、`.rtf`、`.odt`、`.xls`、`.xlsx`、`.csv`、`.ppt`、`.pptx`、`.pdf`、`.txt`、`.md`、`.json`、`.yaml`、`.yml`、`.xml`、`.png`、`.jpg`、`.jpeg`、`.webp`、`.gif`、`.mp3`、`.m4a`、`.ogg`、`.wav`、`.mp4`、`.mov`、`.webm`、`.zip`、`.tar`、`.gz`、`.7z`。请求 Word 文件时，提示会明确要求创建结构有效的 `.docx`，而不是给纯文本改扩展名。
 
 产物扫描拒绝不受信任的根目录和子目录、符号链接、硬链接、跨文件系统条目、错误所有者、组/全局可写文件、空文件、越界路径及不支持格式；目录或条目预算耗尽会使整次快照失败并关闭该次自动返回，不会采用部分结果。Bot 在任务仍持有聊天锁时，以 `O_DIRECTORY|O_NOFOLLOW` 打开工作区并逐级使用相对 dirfd 安全遍历，比较复制前后的设备、inode、类型/模式、所有者、链接数、大小、mtime 和 ctime，只读取快照声明的准确字节数。验证后的内容被复制到 Bot 私有状态目录中的 0600 临时文件，随后才释放聊天锁；Telegram 只读取这份稳定私有副本，绝不读取实时工作区描述符。该机制不能证明文件内容本身无恶意，也不能替代文档格式解析、杀毒或内容审查；Telegram/文件系统/内核层仍可能存在本项目无法消除的风险。
+
+## English overview
+
+### What it does
+
+- Checks the configured Hermes Gateway and performs an explicitly confirmed user-service recovery action.
+- Runs Antigravity/AGY chat and task requests inside a mandatory Bubblewrap sandbox.
+- Maintains mobile-friendly multi-turn Telegram conversations with `/new` and `/stop` controls.
+- Imports supported Codex, CPA/C2API, and Sub2 credential JSON through strict parsing, atomic writes, rollback, and redacted reporting.
+- Optionally analyzes a specifically configured local Git repository in read-only mode, or repairs it only after a short-lived, user-and-chat-bound confirmation.
+- Detects supported files created by successful AGY jobs, freezes validated content into private `0600` copies, and uploads those stable copies as native Telegram documents.
+
+### Security model
+
+- Single administrator, private chats only, with an exact numeric user-ID allowlist.
+- Mandatory per-task Bubblewrap isolation built from an empty root and explicit runtime mounts.
+- No OAuth URL forwarding: `/agy_login` only instructs the operator to run the official `agy` CLI in a trusted terminal.
+- Loopback-only CPA endpoint validation; public or credential-bearing endpoint URLs are rejected.
+- Bounded subprocess, HTTP, Telegram, and artifact output with deterministic secret redaction.
+- Symlink, hardlink, nested-mount, traversal, ownership, permission, race, and cancellation defenses around project and artifact access.
+- Risky host actions use random one-time nonces bound to the requesting user and chat, with a five-minute expiry.
+
+### Quick start
+
+1. Install Python 3.11+, Bubblewrap, the official AGY CLI, and any optional Hermes/CPA components you intend to use.
+2. Copy `.env.example` to `$HOME/.config/hermes-rescue-bot/rescue.env`, keep it mode `0600`, and fill in the required values locally.
+3. Install Python dependencies in a virtual environment.
+4. Install the included systemd user unit and start it only after reviewing the configuration.
+5. Run the test and verification commands listed below before every deployment.
+
+No real credentials, server addresses, OAuth client identifiers, production paths, or deployment-specific project names belong in this repository.
 
 ## 前置条件与配置
 
