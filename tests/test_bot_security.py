@@ -280,8 +280,14 @@ class SandboxSecurityTests(unittest.TestCase):
             code = "import pathlib,ssl,sys; sys.exit(pathlib.Path(sys.argv[1]).exists())"
             args = build_diagnostic_sandbox_args([str(python), "-c", code, str(sentinel)])
             completed = subprocess.run(args, capture_output=True, timeout=15)
-            if completed.returncode != 0 and b"No permissions to create new namespace" in completed.stderr:
-                self.skipTest("unprivileged user namespaces are unavailable")
+            namespace_errors = (
+                b"No permissions to create new namespace",
+                b"Failed RTM_NEWADDR: Operation not permitted",
+            )
+            if completed.returncode != 0 and any(
+                error in completed.stderr for error in namespace_errors
+            ):
+                self.skipTest("required user/network namespaces are unavailable")
             self.assertEqual(completed.returncode, 0, completed.stderr.decode("utf-8", "replace"))
         finally:
             sentinel.unlink(missing_ok=True)
