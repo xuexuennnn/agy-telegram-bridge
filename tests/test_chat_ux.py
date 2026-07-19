@@ -693,7 +693,7 @@ class ArtifactDeliveryTests(unittest.IsolatedAsyncioTestCase):
                 mock.patch("bot.prepare_artifacts", side_effect=paused_prepare),
             ):
                 job = asyncio.create_task(bot.run_chat_prompt(update, "fixture"))
-                await asyncio.to_thread(entered.wait, 2)
+                self.assertTrue(await asyncio.to_thread(entered.wait, 2))
                 job.cancel()
                 waiter = asyncio.create_task(bot.CHAT_LOCK.acquire())
                 await asyncio.sleep(0)
