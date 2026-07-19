@@ -1,28 +1,49 @@
-# Antigravity Hermes Telegram Rescue Bot
+# Antigravity CLI for Telegram
 
-> **中文**：面向单一管理员的 Telegram 私聊救援控制面，在 Hermes Agent 不可用时提供状态检查、受限 Antigravity（AGY）任务、CPA 凭证导入，以及经过明确确认的本地项目诊断与维修。
+> **中文**：把官方 Antigravity CLI 接入 Telegram，在手机上获得接近 Hermes Agent 的聊天体验：普通文字多轮对话、`/new`、`/stop`、持续输入状态、适合移动端的格式化回复，以及生成文件自动回传。
 >
-> **English**: A single-operator Telegram rescue control plane for Hermes Agent, with sandboxed Antigravity (AGY) tasks, safe CPA credential imports, service recovery, and explicitly confirmed local-project diagnostics and repair.
+> **English**: Use the official Antigravity CLI from Telegram with a Hermes-inspired chat experience: plain-text multi-turn conversations, `/new`, `/stop`, typing feedback, mobile-friendly responses, and automatic delivery of generated files.
 
-项目坚持默认拒绝：私聊和数字用户 ID 双重校验、强制 Bubblewrap 隔离、有界且脱敏的输出、原子凭证事务、一次性危险操作确认，以及默认关闭的通用项目维修能力。它不是多租户 Bot，也不是通用远程 Shell。
+这个项目的重点是让已经安装并登录的 `agy` CLI 变成一个实用的 Telegram 助手。它参考了 Hermes 的部分交互逻辑，但不依赖 Hermes 才能完成核心聊天功能。Hermes 状态检查、CPA 凭证导入和项目维修属于可选的运维扩展，不是项目的主要定位。
 
-The project is fail-closed by default: private-chat and numeric-user allowlisting, mandatory Bubblewrap isolation, bounded and redacted output, atomic credential transactions, one-time confirmation for risky actions, and an optional managed-project repair feature that remains disabled unless explicitly configured. It is neither a multi-tenant bot nor a general-purpose remote shell.
+The core chat path turns an existing, authenticated `agy` installation into a practical Telegram assistant. It borrows selected interaction patterns from Hermes without requiring Hermes for normal Antigravity conversations. Hermes status checks, CPA credential imports, and managed-project repair are optional operations features rather than the main product.
 
-## 中文说明
+## 主要体验
 
-## 架构与威胁模型
+- 直接发送文字即可和 Antigravity 对话，不必每次输入命令。
+- 自动延续当前会话；使用 `/new` 开启新对话，使用 `/stop` 中止正在运行的任务。
+- 执行期间持续显示 Telegram typing 状态，并对超时、取消和失败给出简洁反馈。
+- 清理 CLI 的工具旁白和重复过程信息，将结果转成适合手机阅读的 Telegram HTML。
+- 长回复按 Telegram 的 UTF-16 限制安全拆分，格式化失败时自动回退为纯文本。
+- 将 AGY 新生成或修改的文档、表格、图片、音频、视频和压缩包作为 Telegram 原生附件发回。
+- 每个 AGY 任务强制运行在 Bubblewrap 沙箱中，默认看不到主机 home 和其他数据目录。
+
+## Interaction highlights
+
+- Send ordinary text to chat with Antigravity; commands are optional for the normal conversation flow.
+- Continue the active conversation automatically, start fresh with `/new`, and interrupt work with `/stop`.
+- Keep Telegram typing feedback active while AGY runs, with concise timeout, cancellation, and failure messages.
+- Remove CLI narration and repetitive tool chatter, then render the useful result as mobile-friendly Telegram HTML.
+- Split long replies by Telegram's UTF-16 limits and fall back to bounded plain text when formatting is rejected.
+- Return newly generated documents, spreadsheets, images, audio, video, and archives as native Telegram attachments.
+- Run every AGY task inside a mandatory Bubblewrap sandbox that hides the host home and unrelated data roots by default.
+
+## 架构与安全边界
 
 Telegram 更新先通过“私聊 + 数字用户 ID”双重校验。命令在普通 Python 控制面处理；每个 AGY 任务都必须进入内部 Bubblewrap 沙箱。沙箱从空根目录开始，只读暴露明确列出的系统可执行文件、动态加载库以及 DNS/TLS/NSS 所需材料；`/var`、`/opt`、`/srv`、任意 home 和其他主机数据根默认不可见。它另行提供隔离的可写状态，并将已有官方登录令牌只读挂载。外层 systemd 用户服务刻意不使用文件系统 namespace 指令，因为这些指令会阻止必需的非特权嵌套 Bubblewrap 用户 namespace。AGY 子进程以外的主机访问由 Bot 代码和单用户 allowlist 控制，而不是由 systemd 文件系统 namespace 控制。高风险操作使用绑定用户与聊天的随机 nonce、五分钟 TTL 和一次性消费。凭证上传先删除 Telegram 消息，再执行大小限制、严格 JSON 解析、原子写入、回滚与故障隔离。
 
 主要防御目标是恶意消息、提示注入、恶意仓库树、链接/挂载逃逸、Git hook/config 执行、秘密输出、并发修改及失控子进程。它不是多租户 Bot，也不是通用远程 shell。
 
-## 功能
+## 命令与可选运维功能
 
-- `/status`、`/restart`：检查或经确认重启配置的 Hermes Gateway。
-- `/ask`、`/agy`、普通文字：在强制沙箱中调用已安装的 AGY。
-- `/agy_login`：仅显示本地登录说明；Bot 不转发登录 URL、不接收授权码、不代用户接受条款。
-- `/project_status`、`/project`、`/project_repair`：可选通用项目适配器；未配置绝对路径时关闭，维修默认关闭且仍需一次性按钮确认。
-- 上传受支持的 Codex、CPA/C2API 或 Sub2 JSON：本地导入 CPA 账号池。
+核心聊天功能使用 `/ask`、`/agy` 或普通文字；`/new` 开启新会话，`/stop` 终止当前任务，`/agy_login` 显示本地登录说明。Bot 不转发登录 URL、不接收授权码，也不代用户接受第三方条款。
+
+如果同时安装并配置 Hermes 与 CPA，还可以使用以下附加能力：
+
+- `/status`、`/restart`：检查或经确认操作配置的 Hermes Gateway。
+- `/project_status`：检查本地账号池、模型和 CPA 服务状态。
+- `/project`、`/project_repair`：只读分析或经确认维修一个明确配置的本地项目；默认关闭维修。
+- 上传受支持的 Codex、CPA/C2API 或 Sub2 JSON：通过严格校验和原子事务导入本地 CPA 账号池。
 
 ### 手机友好回复与生成文件
 
@@ -34,18 +55,13 @@ Telegram 更新先通过“私聊 + 数字用户 ID”双重校验。命令在�
 
 产物扫描拒绝不受信任的根目录和子目录、符号链接、硬链接、跨文件系统条目、错误所有者、组/全局可写文件、空文件、越界路径及不支持格式；目录或条目预算耗尽会使整次快照失败并关闭该次自动返回，不会采用部分结果。Bot 在任务仍持有聊天锁时，以 `O_DIRECTORY|O_NOFOLLOW` 打开工作区并逐级使用相对 dirfd 安全遍历，比较复制前后的设备、inode、类型/模式、所有者、链接数、大小、mtime 和 ctime，只读取快照声明的准确字节数。验证后的内容被复制到 Bot 私有状态目录中的 0600 临时文件，随后才释放聊天锁；Telegram 只读取这份稳定私有副本，绝不读取实时工作区描述符。该机制不能证明文件内容本身无恶意，也不能替代文档格式解析、杀毒或内容审查；Telegram/文件系统/内核层仍可能存在本项目无法消除的风险。
 
-## English overview
+## Optional operations features
 
-### What it does
+The normal chat flow uses `/ask`, `/agy`, or plain text. `/new` starts a fresh conversation, `/stop` interrupts the current task, and `/agy_login` displays local login instructions without carrying OAuth URLs or authorization codes through Telegram.
 
-- Checks the configured Hermes Gateway and performs an explicitly confirmed user-service recovery action.
-- Runs Antigravity/AGY chat and task requests inside a mandatory Bubblewrap sandbox.
-- Maintains mobile-friendly multi-turn Telegram conversations with `/new` and `/stop` controls.
-- Imports supported Codex, CPA/C2API, and Sub2 credential JSON through strict parsing, atomic writes, rollback, and redacted reporting.
-- Optionally analyzes a specifically configured local Git repository in read-only mode, or repairs it only after a short-lived, user-and-chat-bound confirmation.
-- Detects supported files created by successful AGY jobs, freezes validated content into private `0600` copies, and uploads those stable copies as native Telegram documents.
+When Hermes and CPA are also installed and configured, the bot can expose additional administrator-only commands for checking the local services, confirming a Hermes Gateway action, inspecting a configured Git project, performing an explicitly confirmed repair, and importing supported credential bundles through strict parsing and atomic transactions. These features are optional and fail closed when their paths or switches are not configured.
 
-### Security model
+## Security model
 
 - Single administrator, private chats only, with an exact numeric user-ID allowlist.
 - Mandatory per-task Bubblewrap isolation built from an empty root and explicit runtime mounts.
