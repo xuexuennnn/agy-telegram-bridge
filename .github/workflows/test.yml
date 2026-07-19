@@ -14,6 +14,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      # Hosted runners may link /etc/localtime into a writable image-toolcache path.
+      # The sandbox correctly rejects that ancestry; time zone data is optional.
+      - run: sudo rm -f /etc/localtime
       - run: |
           install -d "$RUNNER_TEMP/agy-bin" "$RUNNER_TEMP/agy-state"
           printf '#!/bin/sh\nexit 0\n' > "$RUNNER_TEMP/agy-bin/agy"
