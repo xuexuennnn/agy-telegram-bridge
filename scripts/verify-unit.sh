@@ -6,12 +6,12 @@ tmp=$(mktemp -d /tmp/hermes-rescue-unit.XXXXXX)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
 
 home=$tmp/home
-install=$home/.local/share/hermes-rescue-bot
-mkdir -p "$install/.venv/bin" "$home/.config/hermes-rescue-bot" \
-    "$home/.local/state/hermes-rescue-bot" "$tmp/unit"
+install=$home/agy-telegram-bridge
+mkdir -p "$install/.venv/bin" "$home/.config/agy-telegram-bridge" \
+    "$home/.local/state/agy-telegram-bridge" "$tmp/unit"
 cp "$root/bot.py" "$install/bot.py"
-ln -s "$(command -v python3)" "$install/.venv/bin/python"
-: > "$home/.config/hermes-rescue-bot/rescue.env"
+ln -s "$(command -v python3)" "$install/.venv/bin/python3"
+: > "$home/.config/agy-telegram-bridge/rescue.env"
 sed "s|%h|$home|g" "$root/systemd/agy-telegram-bridge.service" \
     > "$tmp/unit/agy-telegram-bridge.service"
 
