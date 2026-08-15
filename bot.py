@@ -600,6 +600,11 @@ def validate_agy_mount_sources(mode: str) -> None:
     _validate_regular_mount_source(
         Path(AGY), label="AGY executable", allow_root_owner=True, executable=True
     )
+    agy_real = Path(AGY).parent / "agy-real"
+    if agy_real.exists():
+        _validate_regular_mount_source(
+            agy_real, label="AGY real binary", allow_root_owner=True, executable=True
+        )
     _validate_owned_mount_directory(AGY_STATE_DIR, label="AGY state directory")
     _validate_regular_mount_source(AGY_TOKEN, label="AGY token", secret=True)
     if mode in {"chat", "task"}:
@@ -870,7 +875,12 @@ def build_agy_sandbox_args(
     ]
     created_dirs.update({home_path, home_path / ".local", home_path / ".local/bin", home_path / ".gemini"})
     _append_destination_dirs(args, Path(AGY), created_dirs)
-    args.extend(["--ro-bind", AGY, AGY, "--dir", f"{home}/.gemini"])
+    args.extend(["--ro-bind", AGY, AGY])
+    agy_real = Path(AGY).parent / "agy-real"
+    if agy_real.exists():
+        _append_destination_dirs(args, agy_real, created_dirs)
+        args.extend(["--ro-bind", str(agy_real), str(agy_real)])
+    args.extend(["--dir", f"{home}/.gemini"])
 
     sandbox_config = AGY_STATE_DIR.parent / "config"
     args.extend(["--dir", str(sandbox_config)])
