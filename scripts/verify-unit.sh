@@ -12,7 +12,7 @@ mkdir -p "$install/.venv/bin" "$home/.config/hermes-rescue-bot" \
 cp "$root/bot.py" "$install/bot.py"
 ln -s "$(command -v python3)" "$install/.venv/bin/python"
 : > "$home/.config/hermes-rescue-bot/rescue.env"
-sed "s|%h|$home|g" "$root/systemd/hermes-rescue-bot.service" \
-    > "$tmp/unit/hermes-rescue-bot.service"
+sed "s|%h|$home|g" "$root/systemd/agy-telegram-bridge.service" \
+    > "$tmp/unit/agy-telegram-bridge.service"
 
-systemd-analyze --user verify "$tmp/unit/hermes-rescue-bot.service"
+systemd-analyze --user verify "$tmp/unit/agy-telegram-bridge.service"

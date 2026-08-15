@@ -13,7 +13,7 @@ FORBIDDEN_LOCAL_RELEASE_FILES = {
 REQUIRED = {
     "README.md", "LICENSE", "NOTICE", ".env.example", "requirements.txt",
     ".gitignore", "SECURITY.md", "CONTRIBUTING.md",
-    ".github/workflows/test.yml", "systemd/hermes-rescue-bot.service",
+    ".github/workflows/test.yml", "systemd/agy-telegram-bridge.service",
     "scripts/verify-unit.sh",
 }
 
@@ -104,16 +104,16 @@ class PublicReleaseTests(unittest.TestCase):
         self.assertEqual(failures, [])
 
     def test_systemd_unit_is_portable_and_bubblewrap_compatible(self):
-        unit = (ROOT / "systemd/hermes-rescue-bot.service").read_text(encoding="utf-8")
+        unit = (ROOT / "systemd/agy-telegram-bridge.service").read_text(encoding="utf-8")
         self.assertIn("%h", unit)
         required = {
-            "NoNewPrivileges=yes", "RestrictSUIDSGID=yes",
-            "LockPersonality=yes",
-            "RestrictRealtime=yes",
+            "NoNewPrivileges=true", "RestrictSUIDSGID=true",
+            "LockPersonality=true",
+            "RestrictRealtime=true",
             "RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6",
             "KeyringMode=private",
             "SystemCallFilter=~@clock @cpu-emulation @debug @module @obsolete @raw-io @reboot @swap",
-            "SystemCallArchitectures=native", "Restart=on-failure",
+            "SystemCallArchitectures=native", "Restart=always",
             "RestartSec=5", "TimeoutStartSec=60", "TimeoutStopSec=30",
             "UMask=0077", "StandardOutput=journal", "StandardError=journal",
         }

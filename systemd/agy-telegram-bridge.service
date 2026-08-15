@@ -1,5 +1,5 @@
 [Unit]
-Description=Hermes Rescue Bot
+Description=Telegram Control Plane for Antigravity CLI (agy)
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=60
@@ -7,21 +7,21 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
-EnvironmentFile=%h/.config/hermes-rescue-bot/rescue.env
-ExecStart=%h/.local/share/hermes-rescue-bot/.venv/bin/python %h/.local/share/hermes-rescue-bot/bot.py
-WorkingDirectory=%h/.local/share/hermes-rescue-bot
-Restart=on-failure
+EnvironmentFile=%h/.config/agy-telegram-bridge/rescue.env
+ExecStart=%h/agy-telegram-bridge/.venv/bin/python3 %h/agy-telegram-bridge/bot.py
+WorkingDirectory=%h/agy-telegram-bridge
+Restart=always
 RestartSec=5
 TimeoutStartSec=60
 TimeoutStopSec=30
-NoNewPrivileges=yes
-RestrictSUIDSGID=yes
-LockPersonality=yes
-RestrictRealtime=yes
+NoNewPrivileges=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
 KeyringMode=private
 SystemCallFilter=~@clock @cpu-emulation @debug @module @obsolete @raw-io @reboot @swap
-SystemCallArchitectures=native
 UMask=0077
 StandardOutput=journal
 StandardError=journal

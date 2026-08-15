@@ -55,10 +55,10 @@ Fill in `RESCUE_BOT_TOKEN` and `RESCUE_ALLOWED_USER_ID` before starting. Then, t
 as a service:
 
 ```sh
-install -Dm644 systemd/hermes-rescue-bot.service \
-  "$HOME/.config/systemd/user/hermes-rescue-bot.service"
+install -Dm644 systemd/agy-telegram-bridge.service \
+  "$HOME/.config/systemd/user/agy-telegram-bridge.service"
 systemctl --user daemon-reload
-systemctl --user enable --now hermes-rescue-bot.service
+systemctl --user enable --now agy-telegram-bridge.service
 ```
 
 ## Tests
