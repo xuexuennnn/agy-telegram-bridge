@@ -1,13 +1,8 @@
-# Hermes Rescue Bot
+# Antigravity Telegram Bridge (agy-telegram-bridge)
 
-A Telegram bot that runs command-line recovery tasks on a Linux server, with every task
-confined to a Bubblewrap sandbox.
+A Telegram control plane and Bubblewrap sandbox interface for running the Antigravity CLI (`agy`) directly from Telegram with a Hermes-like conversation UX.
 
-The problem it solves: when a self-hosted service breaks, you usually need SSH access to
-diagnose it. That is inconvenient from a phone and risky to expose. This bot provides a
-narrow, audited path to a specific set of operations — check service status, restart a
-configured unit, run a sandboxed CLI task, import credentials through a validated
-transaction — without opening a general-purpose remote shell.
+The problem it solves: allows calling the Antigravity CLI from Telegram in a sandboxed, stateful conversation flow (similar to Hermes Agent), while keeping high-risk Linux host actions safely isolated under Bubblewrap.
 
 It is a single-administrator tool. It is not multi-tenant, and it is deliberately not a
 remote shell.
@@ -47,8 +42,8 @@ not by systemd. This trade-off is documented rather than hidden.
 Requires Python 3.11+, `bwrap`, and a Telegram bot token.
 
 ```sh
-git clone https://github.com/xuexuennnn/hermes-rescue-bot.git
-cd hermes-rescue-bot
+git clone https://github.com/xuexuennnn/agy-telegram-bridge.git
+cd agy-telegram-bridge
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 install -d "$HOME/.config/hermes-rescue-bot"
