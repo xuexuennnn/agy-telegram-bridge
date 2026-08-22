@@ -1,5 +1,8 @@
 # Antigravity Telegram Bridge (agy-telegram-bridge)
 
+[![tests](https://github.com/xuexuennnn/agy-telegram-bridge/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/xuexuennnn/agy-telegram-bridge/actions/workflows/test.yml)
+
+
 A Telegram control plane and Bubblewrap sandbox interface for running the Antigravity CLI (`agy`) directly from Telegram with a Hermes-like conversation UX.
 
 The problem it solves: allows calling the Antigravity CLI from Telegram in a sandboxed, stateful conversation flow (similar to Hermes Agent), while keeping high-risk Linux host actions safely isolated under Bubblewrap.
